@@ -1,0 +1,129 @@
+package com.salesmanagement.controller;
+
+import com.salesmanagement.model.Supplier;
+import com.salesmanagement.service.SupplierService;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+import java.net.URL;
+import java.sql.SQLException;
+import java.util.ResourceBundle;
+
+public class SupplierController implements Initializable {
+
+    @FXML private TextField nameField;
+    @FXML private TextField phoneField;
+    @FXML private TextField emailField;
+    @FXML private TextField addressField;
+    @FXML private Label messageLabel;
+
+    @FXML private TableView<Supplier> supplierTable;
+    @FXML private TableColumn<Supplier, Integer> idColumn;
+    @FXML private TableColumn<Supplier, String> nameColumn;
+    @FXML private TableColumn<Supplier, String> phoneColumn;
+    @FXML private TableColumn<Supplier, String> emailColumn;
+    @FXML private TableColumn<Supplier, String> addressColumn;
+    @FXML private TableColumn<Supplier, String> statusColumn;
+
+    private final SupplierService supplierService = new SupplierService();
+    private final ObservableList<Supplier> supplierList = FXCollections.observableArrayList();
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
+        emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
+        addressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+
+        supplierTable.setItems(supplierList);
+
+        supplierTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) fillForm(newVal);
+        });
+
+        loadData();
+    }
+
+    private void loadData() {
+        try {
+            supplierList.setAll(supplierService.getAll());
+            messageLabel.setText("");
+        } catch (SQLException e) {
+            messageLabel.setText("Lỗi tải dữ liệu: " + e.getMessage());
+        }
+    }
+
+    private void fillForm(Supplier s) {
+        nameField.setText(s.getName());
+        phoneField.setText(s.getPhone());
+        emailField.setText(s.getEmail());
+        addressField.setText(s.getAddress());
+    }
+
+    @FXML
+    private void handleAdd() {
+        try {
+            supplierService.create(nameField.getText(), phoneField.getText(), emailField.getText(), addressField.getText());
+            clearForm();
+            loadData();
+        } catch (IllegalArgumentException | SQLException e) {
+            messageLabel.setText(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleUpdate() {
+        Supplier selected = supplierTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            messageLabel.setText("Vui lòng chọn 1 nhà cung cấp để cập nhật.");
+            return;
+        }
+        try {
+            selected.setName(nameField.getText());
+            selected.setPhone(phoneField.getText());
+            selected.setEmail(emailField.getText());
+            selected.setAddress(addressField.getText());
+            supplierService.update(selected);
+            clearForm();
+            loadData();
+        } catch (IllegalArgumentException | SQLException e) {
+            messageLabel.setText(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleDeactivate() {
+        Supplier selected = supplierTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            messageLabel.setText("Vui lòng chọn 1 nhà cung cấp để vô hiệu hóa.");
+            return;
+        }
+        try {
+            supplierService.deactivate(selected);
+            clearForm();
+            loadData();
+        } catch (SQLException e) {
+            messageLabel.setText("Lỗi: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleRefresh() {
+        clearForm();
+        loadData();
+    }
+
+    private void clearForm() {
+        nameField.clear();
+        phoneField.clear();
+        emailField.clear();
+        addressField.clear();
+        supplierTable.getSelectionModel().clearSelection();
+    }
+}
