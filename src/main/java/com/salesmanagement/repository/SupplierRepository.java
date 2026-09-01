@@ -63,6 +63,30 @@ public class SupplierRepository {
         return result;
     }
 
+    public List<Supplier> findPage(int pageIndex, int pageSize) throws SQLException {
+        String sql = "SELECT * FROM suppliers ORDER BY name LIMIT ? OFFSET ?";
+        List<Supplier> result = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, pageSize);
+            ps.setInt(2, pageIndex * pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) result.add(mapRow(rs));
+            }
+        }
+        return result;
+    }
+
+    public int countAll() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM suppliers";
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
+        }
+    }
+
     private Supplier mapRow(ResultSet rs) throws SQLException {
         Supplier s = new Supplier();
         s.setId(rs.getInt("id"));

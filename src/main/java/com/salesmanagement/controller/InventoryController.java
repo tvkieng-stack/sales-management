@@ -15,6 +15,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.salesmanagement.util.AsyncUtil;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -57,21 +58,40 @@ public class InventoryController implements Initializable {
     }
 
     private void loadSuppliers() {
-        try {
-            supplierCombo.setItems(FXCollections.observableArrayList(supplierService.getActive()));
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải nhà cung cấp: " + e.getMessage());
-        }
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return supplierService.getActive();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> supplierCombo.setItems(FXCollections.observableArrayList(result)),
+                error -> messageLabel.setText("Lỗi tải nhà cung cấp: " + error.getMessage())
+        );
     }
 
     private void loadProducts() {
-        try {
-            productListView.setItems(FXCollections.observableArrayList(productService.getAll().stream()
-                    .filter(p -> p.getStatus() == com.salesmanagement.model.enums.Status.ACTIVE)
-                    .toList()));
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải sản phẩm: " + e.getMessage());
-        }
+        productListView.setDisable(true);
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return productService.getAll().stream()
+                                .filter(p -> p.getStatus() == com.salesmanagement.model.enums.Status.ACTIVE)
+                                .toList();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> {
+                    productListView.setItems(FXCollections.observableArrayList(result));
+                    productListView.setDisable(false);
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải sản phẩm: " + error.getMessage());
+                    productListView.setDisable(false);
+                }
+        );
     }
 
     @FXML

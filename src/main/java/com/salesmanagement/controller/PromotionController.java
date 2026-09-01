@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.salesmanagement.util.AsyncUtil;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -57,12 +58,27 @@ public class PromotionController implements Initializable {
     }
 
     private void loadData() {
-        try {
-            promotionList.setAll(promotionService.getAll());
-            messageLabel.setText("");
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải dữ liệu: " + e.getMessage());
-        }
+        promotionTable.setDisable(true);
+        messageLabel.setText("Đang tải...");
+
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return promotionService.getAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> {
+                    promotionList.setAll(result);
+                    messageLabel.setText("");
+                    promotionTable.setDisable(false);
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải dữ liệu: " + error.getMessage());
+                    promotionTable.setDisable(false);
+                }
+        );
     }
 
     private void fillForm(Promotion p) {

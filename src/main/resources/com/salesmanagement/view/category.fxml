@@ -33,6 +33,9 @@
 
     <center>
         <TableView fx:id="categoryTable">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+            </columnResizePolicy>
             <columns>
                 <TableColumn fx:id="idColumn" text="ID" prefWidth="50"/>
                 <TableColumn fx:id="nameColumn" text="Tên danh mục" prefWidth="200"/>

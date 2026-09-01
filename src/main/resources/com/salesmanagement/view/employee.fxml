@@ -57,13 +57,16 @@
     </HBox>
 
     <TableView fx:id="userTable" prefHeight="180">
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+        </columnResizePolicy>
         <columns>
             <TableColumn fx:id="userIdColumn" text="ID" prefWidth="40"/>
             <TableColumn fx:id="userUsernameColumn" text="Username" prefWidth="120"/>
             <TableColumn fx:id="userRoleColumn" text="Vai trò" prefWidth="90"/>
             <TableColumn fx:id="userEmployeeColumn" text="Nhân viên" prefWidth="140"/>
             <TableColumn fx:id="userStatusColumn" text="Trạng thái" prefWidth="90"/>
-            <TableColumn fx:id="userActionColumn" text="Thao tác" prefWidth="120"/>
+            <TableColumn fx:id="userActionColumn" text="Thao tác" prefWidth="120" minWidth="100"/>
         </columns>
     </TableView>
 

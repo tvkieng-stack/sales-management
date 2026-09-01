@@ -3,6 +3,8 @@ package com.salesmanagement.controller;
 import com.salesmanagement.model.User;
 import com.salesmanagement.service.Session;
 import com.salesmanagement.util.SceneManager;
+import com.salesmanagement.util.UIAnimations;
+
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -40,6 +42,7 @@ public class DashboardController implements Initializable {
             }
         });
         menuList.getSelectionModel().select("Dashboard");
+        
     }
 
     private void loadContent(String menuItem) {
@@ -48,6 +51,8 @@ public class DashboardController implements Initializable {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/salesmanagement/view/dashboard_home.fxml"));
                 Node view = loader.load();
                 contentArea.getChildren().setAll(view);
+                com.salesmanagement.util.UIAnimations.applyButtonHoverEffect((javafx.scene.Parent) view);
+                com.salesmanagement.util.UIAnimations.fadeIn(view);
             } catch (IOException e) {
                 e.printStackTrace();
                 contentLabel.setText("Lỗi tải Dashboard: " + e.getMessage());
@@ -59,7 +64,7 @@ public class DashboardController implements Initializable {
         String fxmlPath = switch (menuItem) {
             case "Danh mục" -> "/com/salesmanagement/view/category.fxml";
             case "Sản phẩm" -> "/com/salesmanagement/view/product.fxml";
-            case "Bán hàng (POS)" -> "/com/salesmanagement/view/pos.fxml";
+            case "Bán hàng (POS)" -> "/com/salesmanagement/view/pos_tabs.fxml";
             case "Nhà cung cấp" -> "/com/salesmanagement/view/supplier.fxml";
             case "Kho / Nhập hàng" -> "/com/salesmanagement/view/inventory.fxml";
             case "Báo cáo" -> "/com/salesmanagement/view/report.fxml";
@@ -80,6 +85,8 @@ public class DashboardController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Node view = loader.load();
             contentArea.getChildren().setAll(view);
+            com.salesmanagement.util.UIAnimations.applyButtonHoverEffect((javafx.scene.Parent) view);
+            com.salesmanagement.util.UIAnimations.fadeIn(view);
         } catch (IOException e) {
             e.printStackTrace();
             contentLabel.setText("Lỗi tải giao diện: " + e.getMessage());

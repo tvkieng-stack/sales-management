@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.salesmanagement.util.AsyncUtil;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -20,6 +21,7 @@ public class CustomerController implements Initializable {
     @FXML private TextField emailField;
     @FXML private TextField addressField;
     @FXML private Label messageLabel;
+    @FXML private Label pageInfoLabel;
 
     @FXML private TableView<Customer> customerTable;
     @FXML private TableColumn<Customer, Integer> idColumn;
@@ -31,6 +33,7 @@ public class CustomerController implements Initializable {
 
     private final CustomerService customerService = new CustomerService();
     private final ObservableList<Customer> customerList = FXCollections.observableArrayList();
+    private int currentPage = 0;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -51,12 +54,42 @@ public class CustomerController implements Initializable {
     }
 
     private void loadData() {
-        try {
-            customerList.setAll(customerService.getAll());
-            messageLabel.setText("");
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải dữ liệu: " + e.getMessage());
+        customerTable.setDisable(true);
+        messageLabel.setText("Đang tải...");
+
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return customerService.getPage(currentPage);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> {
+                    customerList.setAll(result.items());
+                    pageInfoLabel.setText("Trang " + (result.pageIndex() + 1) + "/" + result.totalPages());
+                    messageLabel.setText("");
+                    customerTable.setDisable(false);
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải dữ liệu: " + error.getMessage());
+                    customerTable.setDisable(false);
+                }
+        );
+    }
+
+    @FXML
+    private void handlePreviousPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            loadData();
         }
+    }
+
+    @FXML
+    private void handleNextPage() {
+        currentPage++;
+        loadData();
     }
 
     private void fillForm(Customer c) {

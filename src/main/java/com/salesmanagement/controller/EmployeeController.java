@@ -13,6 +13,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import com.salesmanagement.service.AuthService;
+import com.salesmanagement.util.AsyncUtil;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -115,22 +116,48 @@ public class EmployeeController implements Initializable {
         });
     }
 
-    private void loadEmployees() {
-        try {
-            employeeList.setAll(employeeService.getAll());
-            employeeCombo.setItems(FXCollections.observableArrayList(
-                    employeeList.filtered(e -> e.getStatus() == Status.ACTIVE)));
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải nhân viên: " + e.getMessage());
-        }
+        private void loadEmployees() {
+        employeeTable.setDisable(true);
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return employeeService.getAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> {
+                    employeeList.setAll(result);
+                    employeeCombo.setItems(FXCollections.observableArrayList(
+                            employeeList.filtered(e -> e.getStatus() == Status.ACTIVE)));
+                    employeeTable.setDisable(false);
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải nhân viên: " + error.getMessage());
+                    employeeTable.setDisable(false);
+                }
+        );
     }
 
     private void loadUsers() {
-        try {
-            userList.setAll(userService.getAll());
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải tài khoản: " + e.getMessage());
-        }
+        userTable.setDisable(true);
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return userService.getAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> {
+                    userList.setAll(result);
+                    userTable.setDisable(false);
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải tài khoản: " + error.getMessage());
+                    userTable.setDisable(false);
+                }
+        );
     }
 
     private void fillEmployeeForm(Employee emp) {

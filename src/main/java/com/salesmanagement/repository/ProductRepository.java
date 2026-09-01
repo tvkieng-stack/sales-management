@@ -81,6 +81,59 @@ public class ProductRepository {
         return query(sql);
     }
 
+    // Phân trang (mục II.3 báo cáo): chỉ tải 1 trang dữ liệu mỗi lần, không load toàn bộ bảng vào RAM
+    public List<Product> findPage(int pageIndex, int pageSize) throws SQLException {
+        String sql = "SELECT p.*, c.name AS category_name FROM products p " +
+                "LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.name LIMIT ? OFFSET ?";
+        List<Product> result = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, pageSize);
+            ps.setInt(2, pageIndex * pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) result.add(mapRow(rs));
+            }
+        }
+        return result;
+    }
+
+    // Đếm tổng số bản ghi - dùng để tính tổng số trang, hiển thị "Trang X/Y"
+    public int countAll() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM products";
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
+        }
+    }
+
+    public List<Product> findActivePage(int pageIndex, int pageSize) throws SQLException {
+        String sql = "SELECT p.*, c.name AS category_name FROM products p " +
+                "LEFT JOIN categories c ON p.category_id = c.id " +
+                "WHERE p.status = 'ACTIVE' ORDER BY p.name LIMIT ? OFFSET ?";
+        List<Product> result = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, pageSize);
+            ps.setInt(2, pageIndex * pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) result.add(mapRow(rs));
+            }
+        }
+        return result;
+    }
+
+    public int countActive() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM products WHERE status = 'ACTIVE'";
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
+        }
+    }
+
     public List<Product> findActive() throws SQLException {
         String sql = "SELECT p.*, c.name AS category_name FROM products p " +
                 "LEFT JOIN categories c ON p.category_id = c.id " +
@@ -140,7 +193,7 @@ public class ProductRepository {
         return result;
     }
 
-        // Dùng trong transaction checkout - đọc tồn kho mới nhất ngay tại thời điểm chốt đơn
+    // Dùng trong transaction checkout - đọc tồn kho mới nhất ngay tại thời điểm chốt đơn
     public Product findByIdInTransaction(Connection conn, int id) throws SQLException {
         String sql = "SELECT p.*, c.name AS category_name FROM products p " +
                 "LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?";

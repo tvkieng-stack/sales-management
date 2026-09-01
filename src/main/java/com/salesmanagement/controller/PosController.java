@@ -6,6 +6,8 @@ import com.salesmanagement.model.Product;
 import com.salesmanagement.model.enums.PaymentMethod;
 import com.salesmanagement.service.ProductService;
 import com.salesmanagement.service.SaleService;
+import com.salesmanagement.util.AsyncUtil;
+
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -18,7 +20,15 @@ import com.salesmanagement.model.Customer;
 import com.salesmanagement.service.CustomerService;
 import com.salesmanagement.model.Promotion;
 import com.salesmanagement.service.PromotionService;
+import com.salesmanagement.controller.InvoicePrintController;
 
+
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -49,6 +59,12 @@ public class PosController implements Initializable {
     private final ObservableList<CartItem> cartData = FXCollections.observableArrayList();
     private final CustomerService customerService = new CustomerService();
     private final PromotionService promotionService = new PromotionService();    
+
+    private int productPage = 0;
+    private boolean hasMoreProducts = true;
+    private boolean isLoadingMoreProducts = false;
+    private boolean scrollListenerAttached = false;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         cartNameColumn.setCellValueFactory(data ->
@@ -71,7 +87,12 @@ public class PosController implements Initializable {
         loadCustomers();
         loadPromotions();
         loadAllProducts();
+        searchField.requestFocus();
+
+        searchField.setOnAction(e -> handleSearch());
+        
     }
+
 
     private void loadPromotions() {
         try {
@@ -101,13 +122,74 @@ public class PosController implements Initializable {
     }
 
     private void loadAllProducts() {
+        loadProductsPage(true);
+    }
+
+    private void loadProductsPage(boolean reset) {
+        if (reset) {
+            productPage = 0;
+            hasMoreProducts = true;
+        }
+        if (!hasMoreProducts || isLoadingMoreProducts) return;
+        isLoadingMoreProducts = true;
+
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return productService.getActivePage(productPage);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                page -> {
+                    if (reset) {
+                        productListView.setItems(FXCollections.observableArrayList(page.items()));
+                    } else {
+                        productListView.getItems().addAll(page.items());
+                    }
+                    productPage++;
+                    hasMoreProducts = productPage < page.totalPages();
+                    isLoadingMoreProducts = false;
+                    attachScrollListenerIfNeeded();
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải sản phẩm: " + error.getMessage());
+                    isLoadingMoreProducts = false;
+                }
+        );
+    }
+
+    // Bắt sự kiện cuộn của ListView - khi cuộn gần đáy (>90%) và còn dữ liệu, tự động tải thêm trang tiếp theo
+    private void attachScrollListenerIfNeeded() {
+        if (scrollListenerAttached) return;
+        for (Node node : productListView.lookupAll(".scroll-bar")) {
+            if (node instanceof ScrollBar sb && sb.getOrientation() == Orientation.VERTICAL) {
+                sb.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal.doubleValue() > 0.9 && searchField.getText().isBlank()) {
+                        loadProductsPage(false);
+                    }
+                });
+                scrollListenerAttached = true;
+                break;
+            }
+        }
+    }
+
+    private void showInvoicePrintDialog(int invoiceId) {
         try {
-            List<Product> products = productService.getAll().stream()
-                    .filter(p -> p.getStatus() == com.salesmanagement.model.enums.Status.ACTIVE)
-                    .toList();
-            productListView.setItems(FXCollections.observableArrayList(products));
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải sản phẩm: " + e.getMessage());
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/salesmanagement/view/invoice_print.fxml"));
+            Parent root = loader.load();
+            InvoicePrintController controller = loader.getController();
+            controller.loadInvoice(invoiceId);
+
+            Stage stage = new Stage();
+            stage.setTitle("Hóa đơn");
+            Scene scene = new Scene(root, 420, 600);
+            scene.getStylesheets().add(getClass().getResource("/com/salesmanagement/view/style.css").toExternalForm());
+            stage.setScene(scene);
+            stage.show();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -145,6 +227,8 @@ public class PosController implements Initializable {
         } catch (IllegalArgumentException e) {
             messageLabel.setText(e.getMessage());
         }
+        searchField.requestFocus();
+        searchField.selectAll(); // để gõ/quét mã tiếp theo là ghi đè luôn, không cần xóa tay
     }
 
     @FXML
@@ -182,6 +266,7 @@ public class PosController implements Initializable {
 
             messageLabel.setStyle("-fx-text-fill: green;");
             messageLabel.setText("Thanh toán thành công! Mã hóa đơn: " + invoice.getInvoiceCode());
+            showInvoicePrintDialog(invoice.getId());
 
             invoiceDiscountField.setText("0");
             refreshCart();
@@ -217,5 +302,20 @@ public class PosController implements Initializable {
         }
         double total = Math.max(0, saleService.getSubtotal() - discount);
         totalLabel.setText(String.format("TỔNG: %,.0f", total));
+    }
+
+    // Các method public này được PosTabsController gọi khi người dùng bấm phím tắt,
+    // đảm bảo hotkey luôn tác động đúng vào Tab đang được chọn, không bị lẫn giữa các đơn hàng.
+    public void focusSearchField() {
+        searchField.requestFocus();
+        searchField.selectAll();
+    }
+
+    public void triggerCheckout() {
+        handleCheckout();
+    }
+
+    public void openCustomerDropdown() {
+        customerCombo.show();
     }
 }

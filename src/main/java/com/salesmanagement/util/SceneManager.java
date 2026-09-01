@@ -25,6 +25,9 @@ public class SceneManager {
             primaryStage.setScene(scene);
             primaryStage.setTitle(title);
             primaryStage.centerOnScreen();
+
+            UIAnimations.applyButtonHoverEffect(root);
+            UIAnimations.fadeIn(root);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load FXML: " + fxmlPath, e);
         }

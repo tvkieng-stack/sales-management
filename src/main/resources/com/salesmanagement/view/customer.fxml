@@ -36,15 +36,26 @@
     </top>
 
     <center>
-        <TableView fx:id="customerTable">
-            <columns>
-                <TableColumn fx:id="idColumn" text="ID" prefWidth="50"/>
-                <TableColumn fx:id="nameColumn" text="Tên khách hàng" prefWidth="160"/>
-                <TableColumn fx:id="phoneColumn" text="Điện thoại" prefWidth="110"/>
-                <TableColumn fx:id="emailColumn" text="Email" prefWidth="150"/>
-                <TableColumn fx:id="addressColumn" text="Địa chỉ" prefWidth="160"/>
-                <TableColumn fx:id="pointsColumn" text="Điểm tích lũy" prefWidth="100"/>
-            </columns>
-        </TableView>
+        <VBox spacing="8">
+            <TableView fx:id="customerTable" VBox.vgrow="ALWAYS">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+                <columns>
+                    <TableColumn fx:id="idColumn" text="ID" prefWidth="50"/>
+                    <TableColumn fx:id="nameColumn" text="Tên khách hàng" prefWidth="160"/>
+                    <TableColumn fx:id="phoneColumn" text="Điện thoại" prefWidth="110"/>
+                    <TableColumn fx:id="emailColumn" text="Email" prefWidth="150"/>
+                    <TableColumn fx:id="addressColumn" text="Địa chỉ" prefWidth="160"/>
+                    <TableColumn fx:id="pointsColumn" text="Điểm tích lũy" prefWidth="100"/>
+                </columns>
+            </TableView>
+
+            <HBox spacing="10" alignment="CENTER">
+                <Button text="◀ Trang trước" onAction="#handlePreviousPage" styleClass="btn-secondary"/>
+                <Label fx:id="pageInfoLabel" text="Trang 1/1"/>
+                <Button text="Trang sau ▶" onAction="#handleNextPage" styleClass="btn-secondary"/>
+            </HBox>
+        </VBox>
     </center>
 </BorderPane>

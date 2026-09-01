@@ -11,6 +11,18 @@ public class SupplierService {
 
     private final SupplierRepository supplierRepository = new SupplierRepository();
 
+    public static final int PAGE_SIZE = 20;
+
+    public PageResult<Supplier> getPage(int pageIndex) throws SQLException {
+        List<Supplier> items = supplierRepository.findPage(pageIndex, PAGE_SIZE);
+        int totalRecords = supplierRepository.countAll();
+        int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
+        return new PageResult<>(items, pageIndex, Math.max(totalPages, 1));
+    }
+
+    public record PageResult<T>(List<T> items, int pageIndex, int totalPages) {
+    }
+
     public List<Supplier> getAll() throws SQLException {
         return supplierRepository.findAll();
     }

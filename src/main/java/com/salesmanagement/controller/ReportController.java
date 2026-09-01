@@ -8,6 +8,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import com.salesmanagement.util.AsyncUtil;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -71,26 +72,45 @@ public class ReportController implements Initializable {
         String fromStr = from.format(DB_FORMAT);
         String toStr = to.format(DB_FORMAT);
 
-        try {
-            ReportService.ReportSummary summary = reportService.getSummary(fromStr, toStr);
-            revenueLabel.setText(String.format("Doanh thu: %,.0f", summary.revenue()));
-            profitLabel.setText(String.format("Lợi nhuận: %,.0f", summary.profit()));
-            orderCountLabel.setText("Số đơn: " + summary.orderCount());
+        messageLabel.setText("Đang tải báo cáo...");
+        bestSellingTable.setDisable(true);
 
-            List<Object[]> bestSelling = reportService.getBestSellingProducts(fromStr, toStr);
-            bestSellingTable.setItems(FXCollections.observableArrayList(bestSelling));
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        ReportService.ReportSummary summary = reportService.getSummary(fromStr, toStr);
+                        List<Object[]> bestSelling = reportService.getBestSellingProducts(fromStr, toStr);
+                        List<Object[]> revenueByDay = reportService.getRevenueByDay(fromStr, toStr);
+                        return new ReportBundle(summary, bestSelling, revenueByDay);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                bundle -> {
+                    revenueLabel.setText(String.format("Doanh thu: %,.0f", bundle.summary.revenue()));
+                    profitLabel.setText(String.format("Lợi nhuận: %,.0f", bundle.summary.profit()));
+                    orderCountLabel.setText("Số đơn: " + bundle.summary.orderCount());
 
-            List<Object[]> revenueByDay = reportService.getRevenueByDay(fromStr, toStr);
-            XYChart.Series<String, Number> series = new XYChart.Series<>();
-            series.setName("Doanh thu");
-            for (Object[] row : revenueByDay) {
-                series.getData().add(new XYChart.Data<>((String) row[0], (Double) row[1]));
-            }
-            revenueChart.getData().setAll(series);
+                    bestSellingTable.setItems(FXCollections.observableArrayList(bundle.bestSelling));
 
-            messageLabel.setText("");
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải báo cáo: " + e.getMessage());
-        }
+                    XYChart.Series<String, Number> series = new XYChart.Series<>();
+                    series.setName("Doanh thu");
+                    for (Object[] row : bundle.revenueByDay) {
+                        series.getData().add(new XYChart.Data<>((String) row[0], (Double) row[1]));
+                    }
+                    revenueChart.getData().setAll(series);
+
+                    messageLabel.setText("");
+                    bestSellingTable.setDisable(false);
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải báo cáo: " + error.getMessage());
+                    bestSellingTable.setDisable(false);
+                }
+        );
+    }
+
+    // Class nội bộ gom 3 kết quả truy vấn lại thành 1 gói duy nhất để chuyển từ luồng nền về UI Thread
+    private record ReportBundle(ReportService.ReportSummary summary, List<Object[]> bestSelling, List<Object[]> revenueByDay) {
     }
 }

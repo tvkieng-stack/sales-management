@@ -147,7 +147,11 @@ public class SaleService {
             if (e instanceof SQLException se) throw se;
             throw new SQLException(e.getMessage(), e);
         } finally {
-            conn.setAutoCommit(originalAutoCommit);
+            try {
+                conn.setAutoCommit(originalAutoCommit);
+                conn.close();
+            } catch (SQLException ignored) {
+            }
         }
     }
 }

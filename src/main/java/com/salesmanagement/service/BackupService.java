@@ -54,13 +54,11 @@ public class BackupService {
             throw new IllegalArgumentException("File backup không tồn tại.");
         }
 
-        // Đóng connection hiện tại trước khi ghi đè file - tránh file bị khóa hoặc dữ liệu không nhất quán
-        DatabaseConnection.closeConnection();
+        DatabaseConnection.closeConnection(); // no-op ở thiết kế mới, giữ lại cho rõ ý đồ code
 
         File currentDbFile = new File(DB_FILE_PATH);
         Files.copy(backupFile.toPath(), currentDbFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        // Mở lại connection để các màn hình sau đó dùng database mới
-        DatabaseConnection.getConnection();
+        // Không cần mở lại connection thủ công - lần gọi getConnection() tiếp theo (ở bất kỳ màn nào)
+        // sẽ tự động kết nối vào file database mới.
     }
 }

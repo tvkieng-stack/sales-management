@@ -14,6 +14,25 @@ public class ProductService {
     private final ProductRepository productRepository = new ProductRepository();
     private final CategoryRepository categoryRepository = new CategoryRepository();
 
+    public static final int PAGE_SIZE = 20;
+
+    public PageResult<Product> getPage(int pageIndex) throws SQLException {
+        List<Product> items = productRepository.findPage(pageIndex, PAGE_SIZE);
+        int totalRecords = productRepository.countAll();
+        int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
+        return new PageResult<>(items, pageIndex, Math.max(totalPages, 1));
+    }
+
+    public record PageResult<T>(List<T> items, int pageIndex, int totalPages) {
+    }
+
+    public PageResult<Product> getActivePage(int pageIndex) throws SQLException {
+        List<Product> items = productRepository.findActivePage(pageIndex, PAGE_SIZE);
+        int totalRecords = productRepository.countActive();
+        int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
+        return new PageResult<>(items, pageIndex, Math.max(totalPages, 1));
+    }
+
     public List<Product> getAll() throws SQLException {
         return productRepository.findAll();
     }

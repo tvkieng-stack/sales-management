@@ -117,7 +117,11 @@ public class PurchaseService {
             conn.rollback(); // ROLLBACK
             throw e;
         } finally {
-            conn.setAutoCommit(originalAutoCommit);
+            try {
+                conn.setAutoCommit(originalAutoCommit);
+                conn.close();
+            } catch (SQLException ignored) {
+            }
         }
     }
 }

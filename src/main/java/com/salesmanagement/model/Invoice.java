@@ -15,6 +15,14 @@ public class Invoice {
     private PaymentMethod paymentMethod;
     private InvoiceStatus status;
     private LocalDateTime createdAt;
+    private String customerName;
+    private String employeeName;
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getEmployeeName() { return employeeName; }
+    public void setEmployeeName(String employeeName) { this.employeeName = employeeName; }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }

@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.salesmanagement.util.AsyncUtil;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -49,12 +50,27 @@ public class CategoryController implements Initializable {
     }
 
     private void loadData() {
-        try {
-            categoryList.setAll(categoryService.getAll());
-            messageLabel.setText("");
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải dữ liệu: " + e.getMessage());
-        }
+        categoryTable.setDisable(true);
+        messageLabel.setText("Đang tải...");
+
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return categoryService.getAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> {
+                    categoryList.setAll(result);
+                    messageLabel.setText("");
+                    categoryTable.setDisable(false);
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải dữ liệu: " + error.getMessage());
+                    categoryTable.setDisable(false);
+                }
+        );
     }
 
     @FXML

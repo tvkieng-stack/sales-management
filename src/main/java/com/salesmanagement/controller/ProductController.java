@@ -3,12 +3,15 @@ package com.salesmanagement.controller;
 import com.salesmanagement.model.Category;
 import com.salesmanagement.model.Product;
 import com.salesmanagement.service.ProductService;
+import com.salesmanagement.util.AsyncUtil;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -25,6 +28,8 @@ public class ProductController implements Initializable {
     @FXML private TextField stockField;
     @FXML private TextField minStockField;
     @FXML private Label messageLabel;
+    @FXML private Label pageInfoLabel;
+    @FXML private StackPane loadingOverlay;
 
     @FXML private TableView<Product> productTable;
     @FXML private TableColumn<Product, Integer> idColumn;
@@ -38,6 +43,7 @@ public class ProductController implements Initializable {
 
     private final ProductService productService = new ProductService();
     private final ObservableList<Product> productList = FXCollections.observableArrayList();
+    private int currentPage = 0;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -72,12 +78,27 @@ public class ProductController implements Initializable {
     }
 
     private void loadData() {
-        try {
-            productList.setAll(productService.getAll());
-            messageLabel.setText("");
-        } catch (SQLException e) {
-            messageLabel.setText("Lỗi tải dữ liệu: " + e.getMessage());
-        }
+        loadingOverlay.setVisible(true);
+
+        AsyncUtil.run(
+                () -> {
+                    try {
+                        return productService.getPage(currentPage);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> {
+                    productList.setAll(result.items());
+                    pageInfoLabel.setText("Trang " + (result.pageIndex() + 1) + "/" + result.totalPages());
+                    messageLabel.setText("");
+                    loadingOverlay.setVisible(false);
+                },
+                error -> {
+                    messageLabel.setText("Lỗi tải dữ liệu: " + error.getMessage());
+                    loadingOverlay.setVisible(false);
+                }
+        );
     }
 
     private void fillForm(Product p) {
@@ -159,6 +180,20 @@ public class ProductController implements Initializable {
     @FXML
     private void handleRefresh() {
         clearForm();
+        loadData();
+    }
+
+    @FXML
+    private void handlePreviousPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            loadData();
+        }
+    }
+
+    @FXML
+    private void handleNextPage() {
+        currentPage++;
         loadData();
     }
 

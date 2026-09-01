@@ -55,6 +55,9 @@
             <VBox spacing="8" prefWidth="350">
                 <Label text="Top sản phẩm bán chạy" style="-fx-font-weight: bold;"/>
                 <TableView fx:id="bestSellingTable" prefHeight="300">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
                     <columns>
                         <TableColumn fx:id="productNameColumn" text="Sản phẩm" prefWidth="150"/>
                         <TableColumn fx:id="qtySoldColumn" text="SL bán" prefWidth="80"/>

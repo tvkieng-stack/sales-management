@@ -10,6 +10,18 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository = new CustomerRepository();
 
+    public static final int PAGE_SIZE = 20;
+
+    public PageResult<Customer> getPage(int pageIndex) throws SQLException {
+        List<Customer> items = customerRepository.findPage(pageIndex, PAGE_SIZE);
+        int totalRecords = customerRepository.countAll();
+        int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
+        return new PageResult<>(items, pageIndex, Math.max(totalPages, 1));
+    }
+
+    public record PageResult<T>(List<T> items, int pageIndex, int totalPages) {
+    }
+
     public List<Customer> getAll() throws SQLException {
         return customerRepository.findAll();
     }

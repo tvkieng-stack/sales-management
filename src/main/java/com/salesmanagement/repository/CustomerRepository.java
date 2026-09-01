@@ -76,6 +76,30 @@ public class CustomerRepository {
         return result;
     }
 
+    public List<Customer> findPage(int pageIndex, int pageSize) throws SQLException {
+        String sql = "SELECT * FROM customers ORDER BY name LIMIT ? OFFSET ?";
+        List<Customer> result = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, pageSize);
+            ps.setInt(2, pageIndex * pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) result.add(mapRow(rs));
+            }
+        }
+        return result;
+    }
+
+    public int countAll() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM customers";
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
+        }
+    }
+
     private Customer mapRow(ResultSet rs) throws SQLException {
         Customer c = new Customer();
         c.setId(rs.getInt("id"));
@@ -86,4 +110,5 @@ public class CustomerRepository {
         c.setLoyaltyPoints(rs.getInt("loyalty_points"));
         return c;
     }
+
 }
