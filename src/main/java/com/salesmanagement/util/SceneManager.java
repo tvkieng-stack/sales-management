@@ -10,6 +10,7 @@ import java.io.IOException;
 public class SceneManager {
 
     private static Stage primaryStage;
+    private static final String STYLESHEET = "/com/salesmanagement/view/style.css";
 
     public static void setPrimaryStage(Stage stage) {
         primaryStage = stage;
@@ -20,6 +21,7 @@ public class SceneManager {
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxmlPath));
             Parent root = loader.load();
             Scene scene = new Scene(root, width, height);
+            scene.getStylesheets().add(SceneManager.class.getResource(STYLESHEET).toExternalForm());
             primaryStage.setScene(scene);
             primaryStage.setTitle(title);
             primaryStage.centerOnScreen();

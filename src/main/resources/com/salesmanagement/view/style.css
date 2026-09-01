@@ -1,0 +1,204 @@
+/* ============ BIẾN MÀU CHUNG (đặt ở root) ============ */
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #f4f6f9;
+}
+
+/* ============ NÚT BẤM MẶC ĐỊNH ============ */
+.button {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 8 18 8 18;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 3, 0, 0, 1);
+}
+.button:hover {
+    -fx-background-color: #5a6268;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 5, 0, 0, 2);
+}
+.button:pressed {
+    -fx-background-color: #495057;
+    -fx-effect: none;
+    -fx-translate-y: 1;
+}
+.button:default {
+    -fx-background-color: #4361ee;
+}
+.button:default:hover {
+    -fx-background-color: #3a56d4;
+}
+
+/* ============ CÁC LOẠI NÚT THEO Ý NGHĨA (thêm styleClass để dùng) ============ */
+.btn-primary {
+    -fx-background-color: #4361ee;
+}
+.btn-primary:hover {
+    -fx-background-color: #3a56d4;
+}
+.btn-success {
+    -fx-background-color: #2ecc71;
+}
+.btn-success:hover {
+    -fx-background-color: #27ae60;
+}
+.btn-danger {
+    -fx-background-color: #e74c3c;
+}
+.btn-danger:hover {
+    -fx-background-color: #c0392b;
+}
+.btn-secondary {
+    -fx-background-color: #95a5a6;
+}
+.btn-secondary:hover {
+    -fx-background-color: #7f8c8d;
+}
+
+/* ============ Ô NHẬP LIỆU ============ */
+.text-field, .password-field, .combo-box, .date-picker {
+    -fx-background-color: white;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #dcdfe6;
+    -fx-border-width: 1;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 13px;
+}
+.text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
+    -fx-border-color: #4361ee;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(67,97,238,0.25), 4, 0, 0, 0);
+}
+.combo-box .list-cell {
+    -fx-padding: 5 10 5 10;
+}
+
+/* ============ BẢNG DỮ LIỆU (TableView) ============ */
+.table-view {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-padding: 2;
+}
+.table-view .column-header-background {
+    -fx-background-color: #eef1f8;
+    -fx-background-radius: 8 8 0 0;
+}
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #e2e8f0 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.table-view .column-header .label {
+    -fx-text-fill: #334155;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+}
+.table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #f1f3f7 transparent;
+}
+.table-row-cell:odd {
+    -fx-background-color: #fafbfd;
+}
+.table-row-cell:selected {
+    -fx-background-color: #dbe4ff;
+    -fx-text-fill: #1e293b;
+}
+.table-row-cell:hover {
+    -fx-background-color: #eef2ff;
+}
+
+/* ============ LISTVIEW mặc định (POS product list, ComboBox popup...) ============ */
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #dcdfe6;
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+.list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #334155;
+    -fx-padding: 10 12 10 12;
+    -fx-font-size: 13.5px;
+}
+.list-cell:filled:hover {
+    -fx-background-color: #eef2ff;
+    -fx-background-radius: 6;
+}
+.list-cell:filled:selected {
+    -fx-background-color: #4361ee;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-font-weight: bold;
+}
+
+/* ============ SIDEBAR MENU RIÊNG (dashboard.fxml) ============ */
+.sidebar {
+    -fx-background-color: #1e293b;
+}
+.sidebar .list-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.sidebar .label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 1px;
+}
+.sidebar .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #cbd5e1;
+}
+.sidebar .list-cell:filled:hover {
+    -fx-background-color: #334155;
+    -fx-text-fill: white;
+}
+.sidebar .list-cell:filled:selected {
+    -fx-background-color: #4361ee;
+    -fx-text-fill: white;
+}
+
+/* ============ TOP BAR (dashboard.fxml) ============ */
+.topbar {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #e2e8f0 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 3, 0, 0, 1);
+}
+
+/* ============ TIÊU ĐỀ MÀN HÌNH ============ */
+.screen-title {
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+/* ============ LABEL LỖI / THÀNH CÔNG ============ */
+.label-error {
+    -fx-text-fill: #e74c3c;
+    -fx-font-weight: bold;
+}
+.label-success {
+    -fx-text-fill: #27ae60;
+    -fx-font-weight: bold;
+}
+
+/* ============ CARD TỔNG QUAN DASHBOARD ============ */
+.card {
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 6, 0, 0, 2);
+}
+
+/* ============ SCROLLBAR gọn hơn ============ */
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+.scroll-bar .thumb {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 6;
+}

@@ -12,6 +12,7 @@ public class User {
     private Integer employeeId;
     private Status status;
     private LocalDateTime createdAt;
+    private String employeeName;
 
     public User() {}
 
@@ -32,6 +33,9 @@ public class User {
 
     public Integer getEmployeeId() { return employeeId; }
     public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
+
+    public String getEmployeeName() { return employeeName; }
+    public void setEmployeeName(String employeeName) { this.employeeName = employeeName; }
 
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }

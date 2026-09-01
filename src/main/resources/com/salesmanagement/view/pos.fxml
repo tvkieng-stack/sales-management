@@ -19,10 +19,16 @@
     </padding>
 
     <top>
-        <HBox spacing="8">
-            <TextField fx:id="searchField" promptText="Tìm sản phẩm theo tên hoặc barcode..." prefWidth="350"/>
-            <Button text="Tìm" onAction="#handleSearch"/>
-        </HBox>
+        <VBox spacing="8">
+            <HBox spacing="8">
+                <TextField fx:id="searchField" promptText="Tìm sản phẩm theo tên hoặc barcode..." prefWidth="350"/>
+                <Button text="Tìm" onAction="#handleSearch"/>
+            </HBox>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Khách hàng:"/>
+                <ComboBox fx:id="customerCombo" prefWidth="220" promptText="Khách vãng lai"/>
+            </HBox>
+        </VBox>
     </top>
 
     <center>
@@ -59,6 +65,8 @@
         <VBox spacing="8" style="-fx-padding: 10 0 0 0;">
             <Label fx:id="messageLabel" style="-fx-text-fill: red;"/>
             <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Label text="Khuyến mãi:"/>
+                <ComboBox fx:id="promotionCombo" prefWidth="200" promptText="Không áp dụng"/>
                 <Label text="Giảm giá hóa đơn:"/>
                 <TextField fx:id="invoiceDiscountField" text="0" prefWidth="80"/>
                 <Label text="Thanh toán:"/>

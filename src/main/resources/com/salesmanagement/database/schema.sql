@@ -136,6 +136,17 @@ CREATE TABLE IF NOT EXISTS stock_transactions (
     FOREIGN KEY (employee_id) REFERENCES employees(id)
 );
 
+CREATE TABLE IF NOT EXISTS promotions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    discount_type TEXT NOT NULL DEFAULT 'PERCENTAGE',
+    discount_value REAL NOT NULL DEFAULT 0 CHECK (discount_value >= 0),
+    start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'ACTIVE'
+);
+
 -- Dữ liệu mẫu tối thiểu để login lần đầu (mục 20 checklist yêu cầu có dữ liệu mẫu)
 INSERT OR IGNORE INTO roles (id, name, description) VALUES
     (1, 'ADMIN', 'Quản trị hệ thống'),

@@ -14,6 +14,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.salesmanagement.model.Customer;
+import com.salesmanagement.service.CustomerService;
+import com.salesmanagement.model.Promotion;
+import com.salesmanagement.service.PromotionService;
+
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -29,17 +34,21 @@ public class PosController implements Initializable {
     @FXML private Label totalLabel;
     @FXML private TextField invoiceDiscountField;
     @FXML private ComboBox<PaymentMethod> paymentMethodCombo;
+    @FXML private ComboBox<Customer> customerCombo;
+    @FXML private ComboBox<Promotion> promotionCombo;
 
     @FXML private TableView<CartItem> cartTable;
     @FXML private TableColumn<CartItem, String> cartNameColumn;
     @FXML private TableColumn<CartItem, Integer> cartQtyColumn;
     @FXML private TableColumn<CartItem, Double> cartPriceColumn;
     @FXML private TableColumn<CartItem, Double> cartSubtotalColumn;
+    
 
     private final ProductService productService = new ProductService();
     private final SaleService saleService = new SaleService();
     private final ObservableList<CartItem> cartData = FXCollections.observableArrayList();
-
+    private final CustomerService customerService = new CustomerService();
+    private final PromotionService promotionService = new PromotionService();    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         cartNameColumn.setCellValueFactory(data ->
@@ -55,9 +64,40 @@ public class PosController implements Initializable {
         paymentMethodCombo.setItems(FXCollections.observableArrayList(PaymentMethod.values()));
         paymentMethodCombo.setValue(PaymentMethod.CASH);
 
+        promotionCombo.valueProperty().addListener((obs, oldVal, newVal) -> applyPromotionDiscount());
+
         invoiceDiscountField.textProperty().addListener((obs, oldVal, newVal) -> updateTotalDisplay());
 
+        loadCustomers();
+        loadPromotions();
         loadAllProducts();
+    }
+
+    private void loadPromotions() {
+        try {
+            promotionCombo.setItems(FXCollections.observableArrayList(promotionService.getCurrentlyValid()));
+        } catch (SQLException e) {
+            messageLabel.setText("Lỗi tải khuyến mãi: " + e.getMessage());
+        }
+    }
+
+    private void applyPromotionDiscount() {
+        Promotion promotion = promotionCombo.getValue();
+        if (promotion == null) {
+            invoiceDiscountField.setText("0");
+        } else {
+            double discount = promotion.calculateDiscount(saleService.getSubtotal());
+            invoiceDiscountField.setText(String.format("%.0f", discount));
+        }
+        updateTotalDisplay();
+    }
+
+    private void loadCustomers() {
+        try {
+            customerCombo.setItems(FXCollections.observableArrayList(customerService.getAll()));
+        } catch (SQLException e) {
+            messageLabel.setText("Lỗi tải khách hàng: " + e.getMessage());
+        }
     }
 
     private void loadAllProducts() {
@@ -136,7 +176,9 @@ public class PosController implements Initializable {
                     ? 0 : Double.parseDouble(invoiceDiscountField.getText().trim());
             PaymentMethod method = paymentMethodCombo.getValue();
 
-            Invoice invoice = saleService.checkout(method, discount, null); // null = khách vãng lai (mục 18 đặc tả)
+            Customer selectedCustomer = customerCombo.getValue();
+            Integer customerId = selectedCustomer != null ? selectedCustomer.getId() : null;
+            Invoice invoice = saleService.checkout(method, discount, customerId);
 
             messageLabel.setStyle("-fx-text-fill: green;");
             messageLabel.setText("Thanh toán thành công! Mã hóa đơn: " + invoice.getInvoiceCode());
@@ -144,6 +186,9 @@ public class PosController implements Initializable {
             invoiceDiscountField.setText("0");
             refreshCart();
             loadAllProducts(); // load lại để thấy tồn kho vừa bị trừ
+            customerCombo.setValue(null);
+            promotionCombo.setValue(null);
+
 
         } catch (NumberFormatException e) {
             messageLabel.setStyle("-fx-text-fill: red;");
@@ -156,7 +201,11 @@ public class PosController implements Initializable {
 
     private void refreshCart() {
         cartData.setAll(saleService.getCart());
-        updateTotalDisplay();
+        if (promotionCombo.getValue() != null) {
+            applyPromotionDiscount(); // tính lại discount theo subtotal mới
+        } else {
+            updateTotalDisplay();
+        }
     }
 
     private void updateTotalDisplay() {

@@ -5,6 +5,8 @@ import com.salesmanagement.model.User;
 import com.salesmanagement.model.enums.Status;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserRepository {
 
@@ -50,6 +52,43 @@ public class UserRepository {
 
     public boolean existsByUsername(String username) throws SQLException {
         return findByUsername(username) != null;
+    }
+
+    public List<User> findAll() throws SQLException {
+        String sql = "SELECT u.*, r.name AS role_name, e.name AS employee_name FROM users u " +
+                "JOIN roles r ON u.role_id = r.id " +
+                "LEFT JOIN employees e ON u.employee_id = e.id ORDER BY u.username";
+        List<User> result = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                User u = mapRow(rs);
+                u.setEmployeeName(rs.getString("employee_name"));
+                result.add(u);
+            }
+        }
+        return result;
+    }
+
+    public void updateStatus(int userId, Status status) throws SQLException {
+        String sql = "UPDATE users SET status = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status.name());
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updatePassword(int userId, String newPasswordHash) throws SQLException {
+        String sql = "UPDATE users SET password_hash = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newPasswordHash);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
     }
 
     private User mapRow(ResultSet rs) throws SQLException {

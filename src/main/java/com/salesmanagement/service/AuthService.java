@@ -45,6 +45,40 @@ public class AuthService {
         Session.logout();
     }
 
+    // UC01 (F01 mục 4): đổi mật khẩu - phải nhập đúng mật khẩu cũ mới được đổi
+    public LoginResult changePassword(String oldPassword, String newPassword, String confirmPassword) {
+        User currentUser = Session.getCurrentUser();
+        if (currentUser == null) {
+            return LoginResult.failure("Phiên đăng nhập đã hết hạn.");
+        }
+
+        if (oldPassword == null || oldPassword.isBlank()) {
+            return LoginResult.failure("Vui lòng nhập mật khẩu hiện tại.");
+        }
+        if (!PasswordUtil.verify(oldPassword, currentUser.getPasswordHash())) {
+            return LoginResult.failure("Mật khẩu hiện tại không đúng.");
+        }
+        if (newPassword == null || newPassword.length() < 6) {
+            return LoginResult.failure("Mật khẩu mới phải có ít nhất 6 ký tự.");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            return LoginResult.failure("Xác nhận mật khẩu không khớp.");
+        }
+        if (newPassword.equals(oldPassword)) {
+            return LoginResult.failure("Mật khẩu mới phải khác mật khẩu hiện tại.");
+        }
+
+        try {
+            String newHash = PasswordUtil.hash(newPassword);
+            userRepository.updatePassword(currentUser.getId(), newHash);
+            currentUser.setPasswordHash(newHash); // cập nhật luôn trong Session để không phải login lại
+            return LoginResult.success(currentUser);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return LoginResult.failure("Lỗi hệ thống, vui lòng thử lại.");
+        }
+    }
+
     // Inner class kết quả login - tránh dùng exception cho luồng nghiệp vụ bình thường
     public static class LoginResult {
         private final boolean success;

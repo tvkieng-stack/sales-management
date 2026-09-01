@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -62,6 +63,10 @@ public class DashboardController implements Initializable {
             case "Nhà cung cấp" -> "/com/salesmanagement/view/supplier.fxml";
             case "Kho / Nhập hàng" -> "/com/salesmanagement/view/inventory.fxml";
             case "Báo cáo" -> "/com/salesmanagement/view/report.fxml";
+            case "Backup/Restore" -> "/com/salesmanagement/view/backup.fxml";
+            case "Khách hàng" -> "/com/salesmanagement/view/customer.fxml";
+            case "Nhân viên / Tài khoản" -> "/com/salesmanagement/view/employee.fxml";
+            case "Khuyến mãi" -> "/com/salesmanagement/view/promotion.fxml";
             default -> null;
         };
 
@@ -89,6 +94,7 @@ public class DashboardController implements Initializable {
         menu.add("Danh mục");
         menu.add("Sản phẩm");
         menu.add("Khách hàng");
+        
 
         if (role.equalsIgnoreCase("ADMIN") || role.equalsIgnoreCase("MANAGER")) {
             menu.add("Kho / Nhập hàng");

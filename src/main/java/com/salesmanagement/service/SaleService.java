@@ -8,6 +8,7 @@ import com.salesmanagement.model.enums.StockTransactionType;
 import com.salesmanagement.repository.InvoiceRepository;
 import com.salesmanagement.repository.ProductRepository;
 import com.salesmanagement.repository.StockTransactionRepository;
+import com.salesmanagement.repository.CustomerRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -21,7 +22,7 @@ public class SaleService {
     private final ProductRepository productRepository = new ProductRepository();
     private final InvoiceRepository invoiceRepository = new InvoiceRepository();
     private final StockTransactionRepository stockTransactionRepository = new StockTransactionRepository();
-
+    private final CustomerRepository customerRepository = new CustomerRepository();
     public List<CartItem> getCart() {
         return cart;
     }
@@ -127,6 +128,14 @@ public class SaleService {
                 tx.setReferenceId(invoice.getId());
                 tx.setNote("Bán hàng - hóa đơn " + invoice.getInvoiceCode());
                 stockTransactionRepository.save(conn, tx);
+            }
+
+            // UC07 (mục 18 đặc tả): cộng điểm tích lũy cho khách hàng SAU KHI invoice PAID - nằm trong cùng transaction
+            if (customerId != null) {
+                int pointsEarned = (int) (total / 10000); // quy tắc: mỗi 10,000đ = 1 điểm (có thể điều chỉnh)
+                if (pointsEarned > 0) {
+                    customerRepository.addLoyaltyPoints(conn, customerId, pointsEarned);
+                }
             }
 
             conn.commit(); // COMMIT
